@@ -1,3 +1,4 @@
+- [长连接在服务集群场景下的解决方案](connection-loadbalance)
 - [一个注解实现下载接口](../../wiki/Concept-Download)
 - [异步回调转为同步返回](../../wiki/Concept-Sync-Waiting)
 - [动态加载外部 jar 中的 Class](../../wiki/Concept-Plugin)
