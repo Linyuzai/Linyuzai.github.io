@@ -1,5 +1,5 @@
 # 服务集群长连接解决方案
 
-- [WebSocket](./Concept-WebSocket-LoadBalance-2)
+- [WebSocket](websocket.md)
 
-- [Netty](./Concept-Netty-LoadBalance)
+- [Netty](netty.md)
