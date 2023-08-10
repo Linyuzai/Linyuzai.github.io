@@ -86,7 +86,7 @@ File -> New -> Project -> Concept Cloud
 
 输入`localhost:8080/swagger-ui/index.html`就能看到测试页面
 
-默认引入了 [Concept Cloud Web](../cloud-web/README.md) 会全局拦截请求和响应
+默认引入了 [Concept Cloud Web](cloud-web/README.md) 会全局拦截请求和响应
 
 # 掘金专栏
 
