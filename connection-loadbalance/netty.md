@@ -334,7 +334,7 @@ public class NettyController {
 
 ### 事件监听器
 
-`ConnectionEventListener`用于监听事件
+`NettyEventListener`用于监听事件
 
 # 事件
 
@@ -356,6 +356,7 @@ public class NettyController {
 |`MessageForwardEvent`|消息转发|
 |`MessageForwardErrorEvent`|消息转发异常|
 |`MessageReceiveEvent`|消息接收|
+|`MessageReceivePredicateErrorEvent`|消息接收断言异常|
 |`MessageDiscardEvent`|消息丢弃|
 |`MasterSlaveSwitchEvent`|主从切换|
 |`MasterSlaveSwitchErrorEvent`|主从切换异常|
