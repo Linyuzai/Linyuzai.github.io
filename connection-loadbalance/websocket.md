@@ -287,6 +287,18 @@ public class WsController {
 
 将会作为一个过滤器来支持多种条件，即[组合条件](#组合条件)模式
 
+### PooledMessage(Beta)
+
+为解决同一个数据多次编码成相同的数据
+
+提供`PooledMessage`来缓存编码后的数据
+
+```java
+ObjectMessage message = new ObjectMessage("消息数据");
+PooledMessage pooled = PooledMessage.wrap(message);
+concept.send(pooled);
+```
+
 # 消息接收
 
 实现`WebSocketMessageHandler`来处理客户端发送的消息
@@ -427,3 +439,7 @@ public class WsController {
 `Servlet`环境下会回调`WebSocketHandlerRegistration`
 
 `Reactive`环境下会回调`ReactiveWebSocketServerHandlerMapping`
+
+# WebSocketClientFactory
+
+`2.2.0`版本针对高版本`javax`变为`jakarta`提供`Servlet`方式的`WebSocketClient`工厂
