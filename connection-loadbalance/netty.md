@@ -13,14 +13,14 @@
 # 集成
 
 ```gradle
-implementation 'com.github.linyuzai:concept-netty-loadbalance-spring-boot-starter:2.0.0'
+implementation 'com.github.linyuzai:concept-netty-loadbalance-spring-boot-starter:2.3.0'
 ```
 
 ```xml
 <dependency>
   <groupId>com.github.linyuzai</groupId>
   <artifactId>concept-netty-loadbalance-spring-boot-starter</artifactId>
-  <version>2.0.0</version>
+  <version>2.3.0</version>
 </dependency>
 ```
 
@@ -366,3 +366,7 @@ public class NettyController {
 |`UnknownCloseEvent`|未知的连接关闭|
 |`UnknownErrorEvent`|未知的连接异常|
 |`UnknownMessageEvent`|未知的消息|
+
+# WebSocket支持（Beta）
+
+使用`WebSocketNettyLoadBalanceHandler`代替`NettyLoadBalanceHandler `
