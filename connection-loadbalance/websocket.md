@@ -15,7 +15,7 @@
 # 集成
 
 ```gradle
-implementation 'com.github.linyuzai:concept-websocket-loadbalance-spring-boot-starter:2.3.0'
+implementation 'com.github.linyuzai:concept-websocket-loadbalance-spring-boot-starter:2.3.2'
 
 implementation 'org.springframework.boot:spring-boot-starter-websocket'//webmvc需要添加websocket依赖，webflux不需要
 ```
@@ -24,7 +24,7 @@ implementation 'org.springframework.boot:spring-boot-starter-websocket'//webmvc�
 <dependency>
   <groupId>com.github.linyuzai</groupId>
   <artifactId>concept-websocket-loadbalance-spring-boot-starter</artifactId>
-  <version>2.3.0</version>
+  <version>2.3.2</version>
 </dependency>
 
 <!--webmvc需要添加websocket依赖，webflux不需要-->

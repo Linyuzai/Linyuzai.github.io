@@ -13,14 +13,14 @@
 # 集成
 
 ```gradle
-implementation 'com.github.linyuzai:concept-netty-loadbalance-spring-boot-starter:2.3.0'
+implementation 'com.github.linyuzai:concept-netty-loadbalance-spring-boot-starter:2.3.2'
 ```
 
 ```xml
 <dependency>
   <groupId>com.github.linyuzai</groupId>
   <artifactId>concept-netty-loadbalance-spring-boot-starter</artifactId>
-  <version>2.3.0</version>
+  <version>2.3.2</version>
 </dependency>
 ```
 
