@@ -12,25 +12,29 @@
 
 本库同时兼容`Webmvc`和`Webflux`，使用方式上没有任何区别
 
+# 最新版本
+
+![Maven Central](https://img.shields.io/maven-central/v/com.github.linyuzai/concept-websocket-loadbalance-spring-boot-starter)
+
 # 集成
 
 ```gradle
-implementation 'com.github.linyuzai:concept-websocket-loadbalance-spring-boot-starter:2.3.2'
+implementation 'com.github.linyuzai:concept-websocket-loadbalance-spring-boot-starter:${version}'
 
 implementation 'org.springframework.boot:spring-boot-starter-websocket'//webmvc需要添加websocket依赖，webflux不需要
 ```
 
 ```xml
 <dependency>
-  <groupId>com.github.linyuzai</groupId>
-  <artifactId>concept-websocket-loadbalance-spring-boot-starter</artifactId>
-  <version>2.3.2</version>
+    <groupId>com.github.linyuzai</groupId>
+    <artifactId>concept-websocket-loadbalance-spring-boot-starter</artifactId>
+    <version>${version}</version>
 </dependency>
 
-<!--webmvc需要添加websocket依赖，webflux不需要-->
+        <!--webmvc需要添加websocket依赖，webflux不需要-->
 <dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-websocket</artifactId>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-websocket</artifactId>
 </dependency>
 ```
 

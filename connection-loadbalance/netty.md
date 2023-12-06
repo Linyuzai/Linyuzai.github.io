@@ -10,17 +10,21 @@
 
 也可以通过自定义来支持更复杂的业务
 
+# 最新版本
+
+![Maven Central](https://img.shields.io/maven-central/v/com.github.linyuzai/concept-netty-loadbalance-spring-boot-starter)
+
 # 集成
 
 ```gradle
-implementation 'com.github.linyuzai:concept-netty-loadbalance-spring-boot-starter:2.3.2'
+implementation 'com.github.linyuzai:concept-netty-loadbalance-spring-boot-starter:${version}'
 ```
 
 ```xml
 <dependency>
-  <groupId>com.github.linyuzai</groupId>
-  <artifactId>concept-netty-loadbalance-spring-boot-starter</artifactId>
-  <version>2.3.2</version>
+    <groupId>com.github.linyuzai</groupId>
+    <artifactId>concept-netty-loadbalance-spring-boot-starter</artifactId>
+    <version>${version}</version>
 </dependency>
 ```
 
