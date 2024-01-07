@@ -62,9 +62,9 @@ public List<Object> list() {
 
 借助`@Download`注解，可以把被下载的资源写在`source`参数中或者作为方法的返回值，两者没有任何区别
 
-# 2.x.x新版本
+# 2.x.x 新版本
 
-注意事项：2.x.x版本与1.x.x版本不兼容
+注意事项：2.x.x 版本与1.x.x 版本不兼容
 
 1. 【结构优化】移除对`aop`的强依赖，使用`@ControllerAdvice`代替，注解移动到`com.github.linyuzai.download.core.annotation`下
 
