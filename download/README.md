@@ -1,116 +1,116 @@
 # 概述
 
-主要用于简单快速的实现一个下载功能
+一个注解实现全场景下载功能
 
-你只需要提供一个文件路径，或者一个http地址，甚至是你的自定义业务对象，其他的事情都由它帮你完成
-
-1. 有多个文件需要压缩？
-2. 压缩文件的缓存？
-3. 需要下载网络资源？
-4. 网络资源的并发？
-5. 网络资源的缓存？
-6. 需要自己处理输入输出流？
-
-上述问题都不需要管，省时省力省心
+无差别兼容`webmvc`和`webflux`
 
 # 示例说明
 
+### 静态下载对象
+
 ```java
+/**
+ * classpath下的文件。
+ */
 @Download(source = "classpath:/download/README.txt")
 @GetMapping("/classpath")
 public void classpath() {
 }
 
+/**
+ * 指定路径的文件。可以指定文件夹，会自动压缩整个文件夹。
+ */
+@Download(source = "file:/Users/Shared/README.txt")
+@GetMapping("/file")
+public void file() {
+}
+
+/**
+ * 指定下载地址。可以通过配置缓存下载文件，后面不需要重复下载。
+ */
+@Download(source = "http://127.0.0.1:8080/concept-download/image.jpg")
+@GetMapping("/http")
+public void http() {
+}
+```
+
+### 动态下载对象
+
+```java
+/**
+ * 返回指定路径的文件。可以指定文件夹，会自动压缩整个文件夹。
+ */
 @Download
 @GetMapping("/file")
 public File file() {
     return new File("/Users/Shared/README.txt");
 }
 
-@Download
-@GetMapping("/http")
-public String http() {
-    return "http://127.0.0.1:8080/concept-download/image.jpg";
+/**
+ * 支持组合不同类型的文件，会自动压缩所有文件。
+ */
+@Download(filename = "List.zip")
+@GetMapping("/list")
+public List<Object> list() {
+    List<Object> list = new ArrayList<>();
+    list.add(new File("/Users/Shared/README.txt"));
+    list.add(new ClassPathResource("/download/README.txt"));
+    list.add("http://127.0.0.1:8080/concept-download/image.jpg");
+    return list;
 }
 ```
 
-借助`@Download`注解，你可以把被下载的资源写在`source`参数中或者作为方法的返回值`return`
+借助`@Download`注解，可以把被下载的资源写在`source`参数中或者作为方法的返回值，两者没有任何区别
 
-两者没有任何区别，只是返回值支持动态的对象
+# 2.x.x新版本
 
-兼容`webmvc`和`webflux`
+注意事项：2.x.x版本与1.x.x版本不兼容
 
-需要注意`webflux`中需要返回`DownloadMono`并且方法返回值类型固定为`Mono<Void>`，因为`webflux`会校验返回值的类型
+1. 【结构优化】移除对`aop`的强依赖，使用`@ControllerAdvice`代替，注解移动到`com.github.linyuzai.download.core.annotation`下
 
-```java
-@Download(source = "classpath:/download/README.txt")
-@GetMapping("/classpath")
-public Mono<Void> classpath() {
-    return DownloadMono.empty();
-}
+2. 【结构优化】移除对`reactor`的强依赖，在自定义组件的时候没有响应式编程的门槛
 
-@Download
-@GetMapping("/file")
-public Mono<Void> file() {
-    return DownloadMono.value(new File("/Users/Shared/README.txt"));
-}
+3. 【新增功能】支持异步消费，解决长时间占用服务连接的问题
 
-@Download
-@GetMapping("/http")
-public Mono<Void> http() {
-    return DownloadMono.value("http://127.0.0.1:8080/concept-download/image.jpg");
-}
-```
+4. 【新增功能】支持`zip`加密，需要依赖`net.lingala.zip4j:zip4j`
+
+5. 【新增功能】支持`tar`，`tar.gz`压缩，需要依赖`org.apache.commons:commons-compress`
+
+6. 【功能优化】支持注解配置`SpEL`
+
+7. 【问题修复】修复下载失败缓存错误的文件的问题
+
+# 最新版本
+
+![Maven Central](https://img.shields.io/maven-central/v/com.github.linyuzai/concept-download-spring-boot-starter)
 
 # 集成
 
 ```gradle
-implementation 'com.github.linyuzai:concept-download-spring-boot-starter:1.2.2'
+implementation 'com.github.linyuzai:concept-download-spring-boot-starter:${version}'
 ```
 
 ```xml
 <dependency>
   <groupId>com.github.linyuzai</groupId>
   <artifactId>concept-download-spring-boot-starter</artifactId>
-  <version>1.2.2</version>
-</dependency>
-```
-
-引入`spring-boot-starter`包就可以直接使用`@Download`注解啦
-
-### 支持http请求的资源类型
-
-默认内置了`HttpURLConnection`处理，并且也提供了`OkHttp`的方式
-
-使用`OkHttp`需要手动依赖如下模块
-
-```gradle
-implementation 'com.github.linyuzai:concept-download-source-okhttp:1.2.0'
-```
-
-```xml
-<dependency>
-  <groupId>com.github.linyuzai</groupId>
-  <artifactId>concept-download-source-okhttp</artifactId>
-  <version>1.2.0</version>
+  <version>${version}</version>
 </dependency>
 ```
 
 ### Kotlin协程实现网络资源的并发请求
 
-注意仅支持`webmvc`不支持`webflux`
-
 需要手动依赖如下模块
 
 ```gradle
-implementation 'com.github.linyuzai:concept-download-load-coroutines:1.2.0'
+implementation 'com.github.linyuzai:concept-download-coroutines:${version}'
 ```
 
 ```xml
 <dependency>
   <groupId>com.github.linyuzai</groupId>
   <artifactId>concept-download-load-coroutines</artifactId>
-  <version>1.2.0</version>
+  <version>${version}</version>
 </dependency>
 ```
 
@@ -128,16 +128,7 @@ public class ConceptDownloadConfig {
 
 ```
 
-### 模块说明
-
-| 模块 | 说明 |
-|-|-|
-|`concept-download-core`|核心功能|
-|`concept-download-source-okhttp`|支持`OkHttp`加载网络资源|
-|`concept-download-load-coroutines`|支持`Kotlin`协程并发加载|
-|`concept-download-spring-boot-starter`|`Spring Boot`自动配置|
-
-# `@Download` 注解说明
+# @Download 注解说明
 
 | 参数 | 说明 |
 |-|-|
@@ -146,29 +137,77 @@ public class ConceptDownloadConfig {
 |`filename`|指定下载时浏览器上显示的名称<br>如果不指定则会获取下载内容的名称，如文件则使用文件名|
 |`contentType`|如果未指定，会尝试获取<br>如果尝试获取失败，则默认`application/octet-stream`<br>或`application/x-zip-compressed`|
 |`compressFormat`|压缩格式，默认`zip`|
+|`compressPassword`|压缩密码，默认无密码|
 |`forceCompress`|强制压缩<br>如果为`true`，不管下载的文件有几个都会压缩<br>如果为`false`，有多个文件时压缩，只有一个文件时不压缩<br>默认`false`|
 |`charset`|如果下载包含中文的文本文件出现乱码，可以尝试指定编码|
 |`headers`|统一的响应头，每2个为一组|
 |`extra`|额外的数据，当需要自行编写额外流程业务时可能会用到|
 
-# 整体流程
+# 下载参数
 
-![整体架构](https://github.com/Linyuzai/concept/blob/master/concept-download/img/architecture-v.png)
+下载时会结合全局配置和注解配置构造一个下载参数`DownloadOptions`
+
+### 自定义下载参数
+
+接口方法返回`DownloadOptions.Configurer`即可重写下载参数
+
+```java
+@Download
+@GetMapping("/rewrite")
+public DownloadOptions.Configurer rewrite() {
+    return new DownloadOptions.Configurer() {
+        @Override
+        public configure(ConfigurableDownloadOptions options) {
+            options.setSource(/*被下载的对象*/);
+            options.setEventListener(new DownloadEventListener() {
+                @Override
+                public void onEvent(Object event) {
+                    //这个事件监听器并只对该方法生效
+                }
+            });
+        }
+    };
+}
+```
+
+### 异步消费
+
+```java
+@Download
+@GetMapping("/async")
+public DownloadOptions.Configurer async() {
+    return new DownloadOptions.Configurer() {
+        @Override
+        public configure(ConfigurableDownloadOptions options) {
+            options.setSource(/*被下载的对象*/);
+            options.setAsyncConsumer(new InputStreamConsumer() {
+                @Override
+                public void consumer(InputStream is) {
+                    //获得压缩后的输入流
+                }
+            });
+            options.setAsyncConsumer(new FileConsumer() {
+                @Override
+                public void consumer(File file) {
+                    //获得压缩后的文件，需要启用压缩缓存或源文件缓存才能拿到文件
+                }
+            });
+        }
+    };
+}
+```
+
+# 下载流程
 
 整个下载流程由`DownloadHandler`和`DownloadHandlerChain`实现链式处理
 
-| 序号 | 步骤 | 说明 |
+|步骤|处理器|说明|
 |-|-|-|
-|1.|全局配置|全局配置`DownloadConfiguration`支持配置文件和`DownloadConfigurer`配置<br>只在服务启动时配置一次|
-|2.|切面拦截|拦截方法上的`@Download`注解|
-|3.|参数构建|结合注解与全局配置`DownloadConfiguration`构建参数`DownloadOptions`<br>方法返回`DownloadOptions.Rewriter`可以重写参数|
-|4.|创建上下文|上下文`DownloadContext`用于下载过程中的数据传递与共享<br>通过`DownloadContextFactory`创建|
-|5.|初始化上下文|支持自定义`DownloadContextInitializer`实现初始化逻辑|
-|6.|解析适配下载数据|基于`DownloadHandler`实现`CreateSourceHandler`<br>通过自定义`Source`和`SourceFactory`支持任意类型数据的扩展|
-|7.|预加载数据|基于`DownloadHandler`实现`LoadSourceHandler`<br>可实现`SourceLoader`自定义加载流程|
-|8.|压缩|基于`DownloadHandler`实现`CompressSourceHandler`<br>可实现`SourceCompressor`自定义压缩逻辑|
-|9.|写入响应|基于`DownloadHandler`实现`WriteResponseHandler`<br>抽象`DownloadResponse`和`DownloadWriter`执行写入操作<br>`DownloadResponse`用于兼容`webmvc`和`webflux`<br>可自定义`DownloadWriter`用于处理输入输出流|
-|10.|销毁上下文|支持自定义`DownloadContextDestroyer`实现销毁逻辑|
+|创建需要下载的`Source`|`CreateSourceHandler`|可实现`Source`和`SourceFactory`支持任意类型数据的扩展|
+|加载需要下载的`Source`|`LoadSourceHandler`|网络请求会进行多线程加载，可实现`SourceLoader`自定义加载流程|
+|压缩需要下载的`Source`|`CompressSourceHandler`|可实现`SourceCompressor`自定义压缩逻辑|
+|数据写入响应|`WriteResponseHandler`|可自定义`DownloadWriter`用于处理输入输出流，异步消费时该处理器不生效|
+|异步消费数据|`AsyncConsumeHandler`|异步消费时生效|
 
 ### 自定义流程扩展
 
@@ -178,7 +217,7 @@ public class ConceptDownloadConfig {
 /**
  * 下载处理器。
  */
-public interface DownloadHandler extends OrderProvider {
+public interface DownloadHandler {
 
     /**
      * 执行处理。
@@ -186,14 +225,12 @@ public interface DownloadHandler extends OrderProvider {
      * @param context {@link DownloadContext}
      * @param chain   {@link DownloadHandlerChain}
      */
-    Mono<Void> handle(DownloadContext context, DownloadHandlerChain chain);
+    Object handle(DownloadContext context, DownloadHandlerChain chain);
 }
 
 ```
 
-# 全局配置
-
-### 配置文件
+# 配置文件
 
 ```yaml
 concept:
@@ -205,6 +242,7 @@ concept:
         delete: false #下载结束后网络资源缓存是否删除
     compress:
       format: zip #压缩格式
+      password: 123456 #压缩密码
       cache:
         enabled: true #压缩缓存是否启用
         path: /compress_cache #压缩缓存路径，默认为 user.home/concept/download
@@ -225,49 +263,24 @@ concept:
         enabled: true #时间计算日志是否启用
 ```
 
-### 代码配置
-
-使用`DownloadConfigurer`修改配置
+# 下载生命周期监听
 
 ```java
-@Configuration
-public class ConceptDownloadConfig implements DownloadConfigurer {
+public class CustomLifecycleListener implements DownloadLifecycleListener {
 
+    /**
+     * 下载开始。
+     */
     @Override
-    public void configure(DownloadConfiguration configuration) {
-        //可以在这里覆盖配置文件的配置
+    public void onStart(DownloadContext context) {
     }
-}
 
-```
-
-# 下载参数
-
-下载时会结合全局配置和注解配置构造一个下载参数`DownloadOptions`
-
-### 自定义下载参数
-
-接口方法返回`DownloadOptions.Rewriter`即可重写下载参数
-
-同时可以设置临时的事件监听器并只对该方法生效
-
-```java
-@Download(source = "classpath:/download/README.txt")
-@GetMapping("/rewrite")
-public DownloadOptions.Rewriter rewrite() {
-    return new DownloadOptions.Rewriter() {
-        @Override
-        public DownloadOptions rewrite(DownloadOptions options) {
-            return options.toBuilder()
-                    .eventListener(new DownloadEventListener() {
-                            @Override
-                            public void onEvent(Object event) {
-                                
-                            }
-                        })
-                    .build();
-        }
-    };
+    /**
+     * 下载完成。
+     */
+    @Override
+    public void onComplete(DownloadContext context) {
+    }
 }
 
 ```
@@ -277,44 +290,6 @@ public DownloadOptions.Rewriter rewrite() {
 每次下载都会生成一个`DownloadContext`实例
 
 在同一个下载流程中可以通过上下文传递和共享数据
-
-### 初始化上下文
-
-上下文创建时可以通过`DownloadContextInitializer`实现自定义初始化逻辑
-
-```java
-/**
- * {@link DownloadContext} 初始化器，{@link DownloadContext} 初始化时会回调。
- */
-public interface DownloadContextInitializer extends OrderProvider {
-
-    /**
-     * 初始化。
-     *
-     * @param context {@link DownloadContext}
-     */
-    void initialize(DownloadContext context);
-}
-```
-
-### 销毁上下文
-
-上下文销毁时可以通过`DownloadContextDestroyer`实现自定义销毁逻辑
-
-```java
-/**
- * {@link DownloadContext} 销毁器，{@link DownloadContext} 销毁时会回调。
- */
-public interface DownloadContextDestroyer extends OrderProvider {
-
-    /**
-     * 销毁。
-     *
-     * @param context {@link DownloadContext}
-     */
-    void destroy(DownloadContext context);
-}
-```
 
 ### 自定义上下文
 
@@ -342,16 +317,15 @@ public interface DownloadContextFactory {
 
 ### 支持的下载类型
 
-| 类型 | 说明 | 依赖 |
-|-|-|-|
-|`FileSource`|支持`File`对象<br>`file:`,`user.home:`,`user-home:`,`user_home:`前缀的字符串||
-|`ClassPathSource`|支持`ClassPathResource`对象<br>`classpath:`前缀的字符串||
-|`TextSource`|支持任意的`String`对象作为文本文件||
-|`HttpSource`|支持`http`地址，基于`HttpURLConnection`||
-|`WebClientSource`|支持http地址，基于`WebClient`，在`webflux`中使用||
-|`OkHttpSource`|支持http地址，基于`OkHttp`|`source-okhttp`|
-|`PublisherSource`|支持`Publisher`对象||
-|`MultipleSource`|支持`array`或`Collection`对象||
+|类型|说明|
+|-|-|
+|`FileSource`|支持`File`对象<br>`file:`,`user.home:`,`user-home:`,`user_home:`前缀的字符串|
+|`ClassPathSource`|支持`ClassPathResource`对象<br>`classpath:`前缀的字符串|
+|`TextSource`|支持任意的`String`对象作为文本文件|
+|`HttpSource`|支持`http`地址，基于`HttpURLConnection`|
+|`OkHttpSource`|支持http地址，基于`OkHttp`，依赖`OkHttp`时自动适配|
+|`PublisherSource`|支持`Publisher`对象|
+|`MultipleSource`|支持`array`或`Collection`对象|
 
 **同时支持上述类型任意组合的数组或集合**
 
@@ -397,7 +371,7 @@ public List<BusinessModel> businessModel() {
 
 ##### 注解说明
 
-| 注解 | 说明 |
+|注解|说明|
 |-|-|
 |`@SourceModel`|标注在类上<br>表明是一个`Source`|
 |`@SourceObject`|标注在具体下载对象上|
@@ -477,7 +451,7 @@ ValueConversion.getInstance().register(ValueConvertor);
 /**
  * {@link Source} 工厂。
  */
-public interface SourceFactory extends OrderProvider {
+public interface SourceFactory {
 
     /**
      * 是否支持需要下载的原始数据对象。
@@ -507,15 +481,12 @@ public interface SourceFactory extends OrderProvider {
 
 ### 内置的资源加载器
 
-|类型|说明|兼容|依赖|
-|-|-|-|-|
-|`DefaultSourceLoader`|按顺序加载，适用于本地文件，默认|`webmvc` `webflux`||
-|`SchedulerSourceLoader`|依赖线程池加载，适合网络资源|`webmvc`||
-|`CoroutinesSourceLoader`|依赖协程加载，适合网络资源|`webmvc`|`load-coroutines`|
+|类型|说明|依赖|
+|-|-|-|
+|`CompletableFutureSourceLoader`|线程池加载||
+|`CoroutinesSourceLoader`|协程加载|`download-coroutines`|
 
 每个`Source`都可以单独指定`asyncLoad`属性来控制是否需要异步加载，目前`HttpSource`和`OkHttpSource`默认为`true`，其他默认都为`false`
-
-注意`webflux`本身就是非阻塞的，具有天然的并发优势，并且不兼容其他两种阻塞式的`SourceLoader`
 
 通过手动注入来切换不同的加载方式
 
@@ -526,9 +497,6 @@ public interface SourceFactory extends OrderProvider {
 ```java
 /**
  * {@link Source} 加载器。
- *
- * @see DefaultSourceLoader
- * @see SchedulerSourceLoader
  */
 public interface SourceLoader {
 
@@ -539,7 +507,7 @@ public interface SourceLoader {
      * @param context {@link DownloadContext}
      * @return 加载后的 {@link Source}
      */
-    Mono<Source> load(Source source, DownloadContext context);
+    void load(Source source, DownloadContext context);
 }
 ```
 
@@ -555,20 +523,6 @@ concept:
         enabled: true #是否启用
         path: / #缓存目录
         delete: false #下载结束后是否删除
-```
-
-### 代码全局配置
-
-```java
-@Configuration
-public class ConceptDownloadConfig implements DownloadConfigurer {
-
-    @Override
-    public void configure(DownloadConfiguration configuration) {
-        configuration.getSource().getCache().setEnabled(true);
-        configuration.getSource().getCache().setPath("缓存路径");
-        configuration.getSource().getCache().setDelete(false);
-    }
 ```
 
 ### 注解配置单个方法
@@ -588,7 +542,7 @@ public String[] sourceCache() {
 
 使用`@SourceCache`注解配合`@Download`实现下载资源的缓存处理，优先级高于上面两种方式
 
-##### `@SourceCache`注解说明
+##### @SourceCache 注解说明
 
 | 参数 | 说明 |
 |-|-|
@@ -661,20 +615,6 @@ concept:
         delete: false #下载结束后是否删除
 ```
 
-### 代码全局配置
-
-```java
-@Configuration
-public class ConceptDownloadConfig implements DownloadConfigurer {
-
-    @Override
-    public void configure(DownloadConfiguration configuration) {
-        configuration.getCompress().getCache().setEnabled(true);
-        configuration.getCompress().getCache().setPath("缓存路径");
-        configuration.getCompress().getCache().setDelete(false);
-    }
-```
-
 ### 注解配置单个方法
 
 ```java
@@ -692,7 +632,7 @@ public String[] compressCache() {
 
 使用`@CompressCache`注解配合`@Download`实现压缩文件的缓存处理，优先级高于上面两种方式
 
-##### `@CompressCache`注解说明
+##### @CompressCache 注解说明
 
 | 参数 | 说明 |
 |-|-|
@@ -774,30 +714,28 @@ public interface DownloadWriter extends OrderProvider {
 
 ### 事件类型
 
-| 事件 | 说明 |
+|事件|说明|
 |-|-|
-|`AfterContextInitializedEvent`|上下文初始化之后发布|
-|`AfterContextDestroyedEvent`|上下文销毁之后发布|
-|`{Source}CreatedEvent`|各种`Source`创建之后发布|
-|`AfterSourceCreatedEvent`|所有`Source`创建之后发布|
-|`SourceCacheDeletedEvent`|`Source`缓存删除之后发布|
-|`SourceReleasedEvent`|`Source`资源释放之后发布|
-|`SourceAlreadyLoadedEvent`|重复加载时发布|
-|`SourceLoadedCacheUsedEvent`|加载使用缓存时发布|
-|`Load{HttpSource}Event`|需要网络请求加载时发布|
-|`SourceLoadingProgressEvent`|加载进度更新时发布|
-|`AfterSourceLoadedEvent`|所有加载完成之后发布|
-|`SourceCompressedCacheUsedEvent`|压缩使用缓存时发布|
-|`SourceCompressionFormatEvent`|压缩格式确定时发布|
-|`SourceNoCompressionEvent`|不压缩时发布|
-|`SourceMemoryCompressionEvent`|使用内存压缩时发布|
-|`SourceFileCompressionEvent`|使用文件压缩时发布|
-|`SourceCompressingProgressEvent`|压缩进度更新时发布|
-|`AfterSourceCompressedEvent`|压缩完成之后发布|
-|`CompressionCacheDeletedEvent`|压缩缓存删除之后发布|
-|`CompressionReleasedEvent`|压缩资源释放之后发布|
-|`ResponseWritingProgressEvent`|响应写入进度更新时发布|
-|`AfterResponseWrittenEvent`|响应写入之后发布|
+|`DownloadStartedEvent`|下载开始|
+|`DownloadCompletedEvent`|下载结束|
+|`SourceCreatedEvent`|`Source`创建完成|
+|`SourceCacheDeletedEvent`|`Source`缓存删除|
+|`SourceReleasedEvent`|`Source`资源释放|
+|`SourceAlreadyLoadedEvent`|重复加载|
+|`SourceLoadedUsingCacheEvent`|加载使用缓存|
+|`SourceLoadingProgressEvent`|加载进度更新|
+|`SourceLoadedEvent`|加载完成|
+|`SourceCompressedUsingCacheEvent`|压缩使用缓存|
+|`SourceCompressionFormatEvent`|压缩格式确定|
+|`SourceNoCompressionEvent`|不压缩|
+|`SourceMemoryCompressionEvent`|使用内存压缩|
+|`SourceFileCompressionEvent`|使用文件压缩|
+|`SourceCompressingProgressEvent`|压缩进度更新|
+|`SourceCompressedEvent`|压缩完成|
+|`CompressionCacheDeletedEvent`|压缩缓存删除|
+|`CompressionReleasedEvent`|压缩资源释放|
+|`ResponseWritingProgressEvent`|响应写入进度更新|
+|`ResponseWrittenEvent`|响应写入|
 
 ### 事件监听
 
@@ -831,6 +769,19 @@ public interface DownloadEventPublisher {
 
 日志通过特定的`DownloadEventListener`实现
 
+### 日志接口
+
+可以自定义日志打印并注入`Spring`容器中
+
+```java
+public interface DownloadLogger {
+
+    void info(String message);
+
+    void error(String message, Throwable e);
+}
+```
+
 ### 日志类型
 
 | 日志 | 说明 |
@@ -856,21 +807,15 @@ concept:
         enabled: true #时间计算日志是否启用
 ```
 
-### 代码全局配置
+# 自定义线程池
+
+可以自定义下载线程池用于异步处理和资源加载
 
 ```java
-@Configuration
-public class ConceptDownloadConfig implements DownloadConfigurer {
-
-    @Override
-    public void configure(DownloadConfiguration configuration) {
-        configuration.getLogger().setEnabled(true);
-        configuration.getLogger().getStandard().setEnabled(true);
-        configuration.getLogger().getProgress().setEnabled(true);
-        configuration.getLogger().getProgress().setDuration(500);
-        configuration.getLogger().getProgress().setPercentage(true);
-        configuration.getLogger().getTimeSpent().setEnabled(true);
-    }
+@Bean
+public DownloadExecutor downloadExecutor() {
+    return new SimpleDownloadExecutor(Executors.newCachedThreadPool());
+}
 ```
 
 # 缓存名称
@@ -880,30 +825,3 @@ public class ConceptDownloadConfig implements DownloadConfigurer {
 ### 自定义缓存名称
 
 可以自定义实现`CacheNameGenerator`或`AbstractCacheNameGenerator`并注入到`Spring`容器中
-
-# Range支持
-
-还在测试阶段，可以使用但可能存在问题
-
-# Bug
-
-- 当加载失败或压缩失败时，会遗留错误的缓存文件，预计下个版本修复
-
-# Todo
-
-- 考虑可以根据数据大小动态返回是否需要压缩或缓存的配置，具体看是否有需求
-
-# 版本
-
-### 列表
-
-##### 1.2.2
-
-- 修复设置自定义`DownloadResponse`时空指针异常
-
-### 依赖
-
-| core | source-okhttp | load-coroutines |
-|-|-|-|
-|1.2.0|1.2.0|1.2.0|
-|1.2.2|-|-|
