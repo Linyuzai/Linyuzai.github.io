@@ -31,10 +31,10 @@ implementation 'org.springframework.boot:spring-boot-starter-websocket'//webmvc�
     <version>${version}</version>
 </dependency>
 
-        <!--webmvc需要添加websocket依赖，webflux不需要-->
+<!--webmvc需要添加websocket依赖，webflux不需要-->
 <dependency>
-<groupId>org.springframework.boot</groupId>
-<artifactId>spring-boot-starter-websocket</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-websocket</artifactId>
 </dependency>
 ```
 
