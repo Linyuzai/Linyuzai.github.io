@@ -103,14 +103,14 @@ implementation 'com.github.linyuzai:concept-download-spring-boot-starter:${versi
 需要手动依赖如下模块
 
 ```gradle
-implementation 'com.github.linyuzai:concept-download-coroutines:${version}'
+implementation 'com.github.linyuzai:concept-download-coroutines:2.0.0'
 ```
 
 ```xml
 <dependency>
   <groupId>com.github.linyuzai</groupId>
-  <artifactId>concept-download-load-coroutines</artifactId>
-  <version>${version}</version>
+  <artifactId>concept-download-coroutines</artifactId>
+  <version>2.0.0</version>
 </dependency>
 ```
 
@@ -825,3 +825,58 @@ public DownloadExecutor downloadExecutor() {
 ### 自定义缓存名称
 
 可以自定义实现`CacheNameGenerator`或`AbstractCacheNameGenerator`并注入到`Spring`容器中
+
+# Mock支持（Beta/2.1.0）
+
+可自行传入输出流模拟下载流程
+
+```java
+@Service
+public class DownloadMockService {
+
+    @Autowired
+    private DownloadMock downloadMock;
+
+    @SneakyThrows
+    public void mock() {
+        //指定输出文件
+        File out = new File("/Users/concept/download/mock.zip");
+        //模拟下载流程
+        //找到注解了@Download的file方法生成下载配置并输出到指定的OutputStream
+        downloadMock.download(this, Files.newOutputStream(out.toPath()));
+    }
+
+    /**
+     * 在模拟下载的方法上添加@Download。
+     */
+    @Download
+    public File file() {
+        return new File("/Users/download");
+    }
+}
+```
+
+在`webflux`中需要手动触发
+
+```java
+@Service
+public class DownloadMockService {
+
+    @Autowired
+    private DownloadMock downloadMock;
+
+    @SneakyThrows
+    public void mock() {
+        File out = new File("/Users/tanghanzheng/concept/download/mock.zip");
+        //获取返回值，并转成 Mono
+        Mono<?> download = (Mono<?>)downloadMock.download(this, Files.newOutputStream(out.toPath()));
+        //触发下载
+        download.subscribe();
+    }
+
+    @Download
+    public File file() {
+        return new File("/Users/tanghanzheng/IdeaProjects/Github/x/concept/sample/src/main/resources/download");
+    }
+}
+```
