@@ -556,8 +556,6 @@ public String[] sourceCache() {
 
 可以使用`@Download(forceCompress = true)`强制压缩
 
-目前只实现了基于`ZipOutputStream`的`ZipSourceCompressor`
-
 ### 自定义压缩
 
 可以自定义实现`SourceCompressor`或`AbstractSourceCompressor`并注入到`Spring`容器中
@@ -575,7 +573,7 @@ public interface SourceCompressor extends OrderProvider {
      *
      * @return 压缩格式
      */
-    String getFormat();
+    String[] getFormats();
 
     /**
      * 判断是否支持对应的压缩格式。
@@ -584,9 +582,7 @@ public interface SourceCompressor extends OrderProvider {
      * @param context {@link DownloadContext}
      * @return 如果支持则返回 true
      */
-    default boolean support(String format, DownloadContext context) {
-        return format.equalsIgnoreCase(getFormat());
-    }
+    boolean support(String format, DownloadContext context);
 
     /**
      * 如果支持对应的格式就会调用该方法执行压缩。
@@ -596,7 +592,7 @@ public interface SourceCompressor extends OrderProvider {
      * @param context {@link DownloadContext}
      * @return {@link Compression}
      */
-    Compression compress(Source source, DownloadWriter writer, DownloadContext context);
+    Compression compress(Source source, String format, DownloadWriter writer, DownloadContext context);
 }
 
 ```
