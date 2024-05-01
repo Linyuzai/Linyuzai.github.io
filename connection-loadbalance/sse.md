@@ -1,12 +1,12 @@
 # 概述
 
-一个服务存在多个实例时，`WebSocket`通过网关会被负载均衡连接到其中任意一个实例上。
+一个服务存在多个实例时，`SSE`通过网关会被负载均衡连接到其中任意一个实例上。
 
 而当一个服务实例发送消息时，连接另一个实例的客户端就会收不到消息
 
 为了解决这个问题，该库提供了一种解决方案，开箱即用
 
-只需要添加一个配置注解，就可以像单体应用一样使用`WebSocket`
+只需要添加一个配置注解，就可以像单体应用一样使用`SSE`
 
 也可以通过自定义来支持更复杂的业务
 
@@ -14,54 +14,46 @@
 
 # 最新版本
 
-![Maven Central](https://img.shields.io/maven-central/v/com.github.linyuzai/concept-websocket-loadbalance-spring-boot-starter)
+![Maven Central](https://img.shields.io/maven-central/v/com.github.linyuzai/concept-sse-loadbalance-spring-boot-starter)
 
 # 集成
 
 ```gradle
-implementation 'com.github.linyuzai:concept-websocket-loadbalance-spring-boot-starter:${version}'
-
-implementation 'org.springframework.boot:spring-boot-starter-websocket'//webmvc需要添加websocket依赖，webflux不需要
+implementation 'com.github.linyuzai:concept-sse-loadbalance-spring-boot-starter:${version}'
 ```
 
 ```xml
 <dependency>
-    <groupId>com.github.linyuzai</groupId>
-    <artifactId>concept-websocket-loadbalance-spring-boot-starter</artifactId>
-    <version>${version}</version>
-</dependency>
-
-<!--webmvc需要添加websocket依赖，webflux不需要-->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-websocket</artifactId>
+  <groupId>com.github.linyuzai</groupId>
+  <artifactId>concept-sse-loadbalance-spring-boot-starter</artifactId>
+  <version>${version}</version>
 </dependency>
 ```
 
 # 使用
 
-在启动类上添加注解`@EnableWebSocketLoadBalanceConcept`启用功能
+在启动类上添加注解`@EnableSseLoadBalanceConcept`启用功能
 
 ```java
-@EnableWebSocketLoadBalanceConcept
+@EnableSseLoadBalanceConcept
 @SpringBootApplication
-public class WsServiceApplication {
+public class SseServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(WsServiceApplication.class, args);
+        SpringApplication.run(SseServiceApplication.class, args);
     }
 }
 ```
 
-注入`WebSocketLoadBalanceConcept`即可跨实例发送消息
+注入`SseLoadBalanceConcept`即可跨实例发送消息
 
 ```java
 @RestController
-@RequestMapping("/ws")
-public class WsController {
+@RequestMapping("/sse")
+public class SseController {
 
     @Autowired
-    private WebSocketLoadBalanceConcept concept;
+    private SseLoadBalanceConcept concept;
 
     @RequestMapping("/send")
     public void send(@RequestParam String msg) {
@@ -70,20 +62,19 @@ public class WsController {
 }
 ```
 
-客户端的连接地址为`ws(s)://{服务的地址}/concept-websocket/{自定义路径}`
+客户端的连接地址为`http(s)://{服务的地址}/concept-sse/{自定义路径}`
 
-其中`concept-websocket`为默认的前缀，可在配置中自定义（JAVAX不支持自定义）
+其中`concept-sse`为默认的前缀，可在配置中自定义
 
 # 配置属性
 
 ```yaml
 concept:
-  websocket:
-    type: auto #JAVAX/SERVLET/REACTIVE，AUTO自动适配，默认AUTO
+  sse:
     server: #服务配置
       default-endpoint: #默认端点
         enabled: true #是否启用默认端点，默认true
-        prefix: concept-websocket #前缀，默认'/concept-websocket/'
+        prefix: concept-see #前缀，默认'/concept-sse/'
         path-selector: #Path选择器
           enabled: false #是否启用Path选择器，默认false
         user-selector: #User选择器
@@ -92,12 +83,8 @@ concept:
         retry:
           times: 0 #客户端重试次数，默认不重试
           period: 0 #客户端重试间隔，单位ms，默认0ms
-      heartbeat: #心跳配置
-        enabled: true #是否启用心跳，默认true
-        period: 60000 #心跳间隔，单位ms，默认1分钟
-        timeout: 210000 #超时时间，单位ms，默认3.5分钟，3次心跳间隔
     load-balance: #负载均衡（转发）配置
-      subscriber-master: websocket #主订阅器，默认 websocket
+      subscriber-master: see #主订阅器，默认 see
       subscriber-slave: none #从订阅器，默认无
       message:
         retry:
@@ -107,17 +94,13 @@ concept:
         enabled: true #是否启用监控，默认true
         period: 30000 #轮训间隔，单位ms，默认30s
         logger: false #是否启用日志，默认false
-      heartbeat: #心跳配置
-        enabled: true #是否启用心跳，默认true
-        period: 60000 #心跳间隔，单位ms，默认1分钟
-        timeout: 210000 #超时时间，单位ms，默认3.5分钟，3次心跳间隔
     executor:
       thread-pool-size: 1 #线程池大小，默认1
 ```
 
 # 原理
 
-通过服务间的`websocket`连接或是`Redis`和`MQ`等中间件转发消息
+通过服务间的`sse`连接或是`Redis`和`MQ`等中间件转发消息
 
 # 连接类型
 
@@ -129,27 +112,23 @@ concept:
 
 # 连接域
 
-由于本库支持多种连接（当前包括`WebSocket`和`Netty`）同时配置，所以引入连接域来进行限制。
+由于本库支持多种连接（当前包括`WebSocket`和`Netty`和`SSE`）同时配置，所以引入连接域来进行限制。
 
-在自定义组件时需要指定该组件所适配的连接类型（`NettyScoped.NAME/WebSocketScoped.NAME`）
+在自定义组件时需要指定该组件所适配的连接类型（`NettyScoped.NAME/WebSocketScoped.NAME/SseScoped.NAME`）
 
 可通过重写`boolean support(String scope)`方法或是调用`addScopes(String... scopes)`来配置
 
 ### 事件监听器
 
-可以实现`WebSocketEventListener`来监听事件
+可以实现`SseEventListener`来监听事件
 
 ### 生命周期监听器
 
-可以实现`WebSocketLifecycleListener`来监听生命周期（连接发布/连接关闭）
-
-### 消息处理器
-
-可以实现`WebSocketMessageHandler`来处理消息
+可以实现`SseLifecycleListener`来监听生命周期（连接发布/连接关闭）
 
 ### 消息编解码适配器
 
-可以继承`WebSocketMessageCodecAdapter`来添加消息编解码器
+可以继承`SseMessageCodecAdapter`来添加消息编解码器
 
 # 主从订阅
 
@@ -167,9 +146,9 @@ concept:
 
 ```yaml
 concept:
-  websocket:
+  sse:
     load-balance:
-      subscriber-master: websocket #主订阅者器，默认 websocket
+      subscriber-master: see #主订阅者器，默认 see
       subscriber-slave: none #从订阅器，默认无
 ```
 
@@ -177,8 +156,8 @@ concept:
 
 |配置|说明|
 |-|-|
-|websocket|每个服务实例ws双向连接，只能配置为主订阅器，且不支持主从切换|
-|websocket_ssl|每个服务实例wss双向连接，只能配置为主订阅器，且不支持主从切换|
+|sse|每个服务实例sse双向连接，只能配置为主订阅器，且不支持主从切换|
+|sse_ssl|每个服务实例sse双向连接，只能配置为主订阅器，且不支持主从切换|
 |kafka_topic|kafka转发|
 |rabbit_fanout|rabbit转发|
 |redis_topic|redis发布订阅|
@@ -188,6 +167,10 @@ concept:
 |redisson_shared_topic|redisson发布订阅|
 |redisson_shared_topic_reactive|redisson发布订阅|
 |none|不转发|
+
+需要注意，服务间`SSE`连接基于`@RequestMapping("/concept-sse-subscriber")`
+
+如果对接口存在拦截逻辑，记得添加该路径到白名单
 
 # 幂等转发
 
@@ -205,13 +188,13 @@ concept:
 
 ### 给指定路径的客户端发送消息
 
-假设前端连接的`WebSocket`地址为`ws://localhost:8080/concept-websocket/sample`，`sample`为我们自定义路径
+假设前端连接的`SSE`地址为`http://localhost:8080/concept-sse/sample`，`sample`为我们自定义路径
 
 在配置中启用路径选择器
 
 ```yaml
 concept:
-  websocket:
+  sse:
     server: 
       default-endpoint: 
         path-selector: 
@@ -222,11 +205,11 @@ concept:
 
 ```java
 @RestController
-@RequestMapping("/ws")
-public class WsController {
+@RequestMapping("/sse")
+public class SseController {
 
     @Autowired
-    private WebSocketLoadBalanceConcept concept;
+    private SseLoadBalanceConcept concept;
 
     @RequestMapping("/send-path")
     public void sendPath(@RequestParam String msg) {
@@ -237,7 +220,7 @@ public class WsController {
 
 ### 给指定用户发送消息
 
-假设前端连接的`WebSocket`地址为`ws://localhost:8080/concept-websocket/user?userId=1`
+假设前端连接的`SSE`地址为`http://localhost:8080/concept-sse/user?userId=1`
 
 其中`userId`为固定参数名
 
@@ -245,7 +228,7 @@ public class WsController {
 
 ```yaml
 concept:
-  websocket:
+  sse:
     server: 
       default-endpoint: 
         user-selector: 
@@ -256,11 +239,11 @@ concept:
 
 ```java
 @RestController
-@RequestMapping("/ws")
-public class WsController {
+@RequestMapping("/sse")
+public class SseController {
 
     @Autowired
-    private WebSocketLoadBalanceConcept concept;
+    private SseLoadBalanceConcept concept;
 
     @RequestMapping("/send-user")
     public void sendUser(@RequestParam String msg) {
@@ -275,11 +258,11 @@ public class WsController {
 
 ```java
 @RestController
-@RequestMapping("/ws")
-public class WsController {
+@RequestMapping("/sse")
+public class SseController {
 
     @Autowired
-    private WebSocketLoadBalanceConcept concept;
+    private SseLoadBalanceConcept concept;
 
     @RequestMapping("/send-path-user")
     public void sendUser(@RequestParam String msg) {
@@ -299,7 +282,7 @@ public class WsController {
 
 将会作为一个过滤器来支持多种条件，即[组合条件](#组合条件)模式
 
-### PooledMessage(Beta)
+### PooledMessage
 
 为解决同一个数据多次编码成相同的数据
 
@@ -311,15 +294,11 @@ PooledMessage pooled = PooledMessage.wrap(message);
 concept.send(pooled);
 ```
 
-# 消息接收
-
-实现`WebSocketMessageHandler`来处理客户端发送的消息
-
 # 编解码器
 
 默认配置的编解码器都是转`JSON`
 
-可以通过`WebSocketMessageCodecAdapter`或`(Abstract)MessageCodecAdapter`自定义
+可以通过`SseMessageCodecAdapter`或`(Abstract)MessageCodecAdapter`自定义
 
 # 组件说明
 
@@ -335,7 +314,7 @@ concept.send(pooled);
 
 ### 连接服务管理器
 
-`ConnectionServerManager`用于获取其他服务实例信息（`ws`双向连接中使用）和自身服务信息
+`ConnectionServerManager`用于获取其他服务实例信息（`sse`双向连接中使用）和自身服务信息
 
 默认使用`DiscoveryClient`和`Registration`来获得信息
 
@@ -351,7 +330,7 @@ concept.send(pooled);
 
 ### 连接工厂
 
-`ConnectionFactory`用于扩展`Connection`（如`WebSocketConnection/NettyConnection`）
+`ConnectionFactory`用于扩展`Connection`（如`WebSocketConnection/NettyConnection/SseConnection`）
 
 可自定义`ConnectionFactory`注入容器生效
 
@@ -444,14 +423,14 @@ concept.send(pooled);
 |`UnknownErrorEvent`|未知的连接异常|
 |`UnknownMessageEvent`|未知的消息|
 
-# 默认服务端点配置
+# ID生成器
 
-可以自定义`DefaultEndpointCustomizer`来配置
+`SSE`连接的`id`默认通过`UUID`生成
 
-`Servlet`环境下会回调`WebSocketHandlerRegistration`
+可自定义`SseIdGenerator`用于生成`id`
 
-`Reactive`环境下会回调`ReactiveWebSocketServerHandlerMapping`
+# SseEmitter&SseFlux
 
-# WebSocketClientFactory
+`webmvc`中可自定义`SseEmitterFactory`生成`SseEmitter`
 
-`2.2.0`版本针对高版本`javax`变为`jakarta`提供`Servlet`方式的`WebSocketClient`工厂
+`webflux`中可自定义`SseFluxFactory`生成`Flux<ServerSentEvent>`

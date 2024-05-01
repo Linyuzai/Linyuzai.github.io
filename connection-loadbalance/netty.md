@@ -153,6 +153,14 @@ concept:
 
 可以实现`NettyLifecycleListener`来监听生命周期（连接发布/连接关闭）
 
+### 消息处理器
+
+可以实现`NettyMessageHandler`来处理消息
+
+### 消息编解码适配器
+
+可以继承`NettyMessageCodecAdapter`来添加消息编解码器
+
 # 主从订阅
 
 可以配置2种订阅转发方式提高容错
@@ -246,7 +254,7 @@ public class NettyController {
 
 默认配置的编解码器都是转`JSON`
 
-可以通过`(Abstract)MessageCodecAdapter`自定义
+可以通过`NettyMessageCodecAdapter`或`(Abstract)MessageCodecAdapter`自定义
 
 # 组件说明
 
