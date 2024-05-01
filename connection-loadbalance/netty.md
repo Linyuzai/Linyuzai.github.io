@@ -139,9 +139,9 @@ concept:
 
 # 连接域
 
-由于本库支持多种连接（当前包括`WebSocket`和`Netty`）同时配置，所以引入连接域来进行限制。
+由于本库支持多种连接（当前包括`WebSocket`和`Netty`和`SSE`）同时配置，所以引入连接域来进行限制。
 
-在自定义组件时需要指定该组件所适配的连接类型（`NettyScoped.NAME/WebSocketScoped.NAME`）
+在自定义组件时需要指定该组件所适配的连接类型（`NettyScoped.NAME/WebSocketScoped.NAME/SseScoped.NAME`）
 
 可通过重写`boolean support(String scope)`方法或是调用`addScopes(String... scopes)`来配置
 
@@ -286,7 +286,7 @@ public class NettyController {
 
 ### 连接工厂
 
-`ConnectionFactory`用于扩展`Connection`（如`WebSocketConnection/NettyConnection`）
+`ConnectionFactory`用于扩展`Connection`（如`WebSocketConnection/NettyConnection/SseConnection`）
 
 可自定义`ConnectionFactory`注入容器生效
 
