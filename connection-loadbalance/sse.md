@@ -282,17 +282,29 @@ public class SseController {
 
 将会作为一个过滤器来支持多种条件，即[组合条件](#组合条件)模式
 
-### PooledMessage
+### 可复用消息
 
 为解决同一个数据多次编码成相同的数据
 
-提供`PooledMessage`来缓存编码后的数据
+提供`ReusableMessage`来缓存编码后的数据
 
 ```java
 ObjectMessage message = new ObjectMessage("消息数据");
-PooledMessage pooled = PooledMessage.wrap(message);
-concept.send(pooled);
+ReusableMessage reusaeble = message.toReusableMessage();
+concept.send(reusaeble);
 ```
+
+### 并发发送消息
+
+默认情况下按顺序循环发送
+
+可以注入`CompletableFutureMessageSenderFactory`实现并发发送
+
+或是自定义实现`(Abstract)MessageSenderFactory`
+
+# 请求拦截
+
+实现`SseRequestInterceptor`拦截连接
 
 # 编解码器
 
