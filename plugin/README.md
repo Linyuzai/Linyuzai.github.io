@@ -4,7 +4,7 @@
 
 通过监听指定目录中文件的变化触发插件文件加载卸载流程
 
-目前已实现基础的内容读取以及加载外部`Class`
+目前已实现基础的内容读取以及加载外部 Class
 
 # 最新版本
 
@@ -17,10 +17,11 @@ implementation 'com.github.linyuzai:concept-plugin-spring-boot-starter:${version
 ```
 
 ```xml
+
 <dependency>
-  <groupId>com.github.linyuzai</groupId>
-  <artifactId>concept-plugin-spring-boot-starter</artifactId>
-  <version>${version}</version>
+    <groupId>com.github.linyuzai</groupId>
+    <artifactId>concept-plugin-spring-boot-starter</artifactId>
+    <version>${version}</version>
 </dependency>
 ```
 
@@ -31,6 +32,7 @@ implementation 'com.github.linyuzai:concept-plugin-spring-boot-starter:${version
 ### 1. 在启动类上添加注解 @EnablePluginConcept 启用功能
 
 ```java
+
 @EnablePluginConcept
 @SpringBootApplication
 public class PluginApplication {
@@ -47,7 +49,7 @@ public class PluginApplication {
 
 - 类提取器
 
->泛型可指定
+> 泛型可指定
 >
 >Class<? extends CustomPlugin>
 >
@@ -67,14 +69,14 @@ public class SampleClassExtractor extends ClassExtractor<List<Class<? extends Cu
 
     @Override
     public void onExtract(List<Class<? extends CustomPlugin>> plugins, PluginContext context) {
-        
+
     }
 }
 ```
 
 - 实例提取器
 
->泛型可指定
+> 泛型可指定
 >
 >CustomPlugin
 >
@@ -90,19 +92,20 @@ public class SampleClassExtractor extends ClassExtractor<List<Class<? extends Cu
 >
 
 ```java
+
 @Component
 public class SampleBeanExtractor extends BeanExtractor<List<? extends CustomPlugin>> {
 
     @Override
     public void onExtract(List<? extends CustomPlugin> plugins, PluginContext context) {
-        
+
     }
 }
 ```
 
 - 配置文件提取器
 
->泛型可指定
+> 泛型可指定
 >
 >Properties
 >
@@ -118,40 +121,44 @@ public class SampleBeanExtractor extends BeanExtractor<List<? extends CustomPlug
 >
 
 ```java
+
 @Component
 public class SamplePropertiesExtractor extends PropertiesExtractor<List<Properties>> {
 
     @Override
     public void onExtract(List<Properties> plugins, PluginContext context) {
-        
+
     }
 }
 ```
 
 - 内容提取器
 
->泛型可指定
+> 泛型可指定
 >
 >String，InputStream，byte[]，ByteBuffer
 >
 >String[]，InputStream[]，byte[][]，ByteBuffer[]
 >
->Collection<(? extends )String>，Collection<(? extends )InputStream>，Collection<byte[]>，Collection<(? extends )ByteBuffer>
+>Collection<(? extends )String>，Collection<(? extends )InputStream>，Collection<byte[]>，Collection<(? extends )
+> ByteBuffer>
 >
 >List<(? extends )String>，List<(? extends )InputStream>，List<byte[]>，List<(? extends )ByteBuffer>
 >
 >Set<(? extends )String>，Set<(? extends )InputStream>，Set<byte[]>，Set<(? extends )ByteBuffer>
 >
->Map<Object, (? extends )String>，Map<Object, (? extends )InputStream>，Map<Object, byte[]>，Map<Object, (? extends )ByteBuffer>
+>Map<Object, (? extends )String>，Map<Object, (? extends )InputStream>，Map<Object, byte[]>，Map<Object, (? extends )
+> ByteBuffer>
 >
 
 ```java
+
 @Component
 public class SampleContentExtractor extends ContentExtractor<List<String>> {
 
     @Override
     public void onExtract(List<String> plugins, PluginContext context) {
-        
+
     }
 }
 ```
@@ -169,6 +176,7 @@ public class SampleContentExtractor extends ContentExtractor<List<String>> {
 > 可选参数 Plugin、PluginContext
 
 ```java
+
 @Component
 public class SampleDynamicExtractor {
 
@@ -231,6 +239,7 @@ spring:
 - 路径名称过滤（Ant匹配）
 
 ```java
+
 @Configuration
 public class PluginConfig {
 
@@ -244,6 +253,7 @@ public class PluginConfig {
 - 类名过滤（Ant匹配）
 
 ```java
+
 @Configuration
 public class PluginConfig {
 
@@ -257,6 +267,7 @@ public class PluginConfig {
 - 类过滤
 
 ```java
+
 @Configuration
 public class PluginConfig {
 
@@ -270,6 +281,7 @@ public class PluginConfig {
 - 类注解过滤
 
 ```java
+
 @Configuration
 public class PluginConfig {
 
@@ -283,6 +295,7 @@ public class PluginConfig {
 - Modifier过滤
 
 ```java
+
 @Configuration
 public class PluginConfig {
 
@@ -299,21 +312,22 @@ public class PluginConfig {
 
 提取时可添加注解进行过滤
 
-|注解|标记位置|说明|
-|-|-|-|
-|`@PluginEntry`|方法或参数|路径名称匹配|
-|`@PluginText`|参数|String的编码|
-|`@PluginClassName`|参数|类名匹配|
-|`@PluginClass`|参数|类匹配|
-|`@PluginClassAnnotation`|参数|类上注解匹配|
+| 注解                       | 标记位置  | 说明        |
+|--------------------------|-------|-----------|
+| `@PluginEntry`           | 方法或参数 | 路径名称匹配    |
+| `@PluginText`            | 参数    | String的编码 |
+| `@PluginClassName`       | 参数    | 类名匹配      |
+| `@PluginClass`           | 参数    | 类匹配       |
+| `@PluginClassAnnotation` | 参数    | 类上注解匹配    |
 
 ```java
+
 @Component
 public class CustomExtractor extends ClassExtractor<Class<?>> {
 
     @Override
     public void onExtract(@PluginClassName("com.example.**") Class<?> plugin, PluginContext context) {
-        
+
     }
 }
 
@@ -335,10 +349,10 @@ public class SampleDynamicExtractor {
 `java`项目在`resources`目录下添加即可
 
 ```properties
-concept.plugin.name= #名称
-concept.plugin.handler.enabled= #是否解析提取插件
-concept.plugin.dependency.names= #依赖的插件
-concept.plugin.jar.mode= #加载模式
+concept.plugin.name=#名称
+concept.plugin.handler.enabled=#是否解析提取插件
+concept.plugin.dependency.names=#依赖的插件
+concept.plugin.jar.mode=#加载模式
 #也可添加自定义配置
 custom.app=${spring.application.name} #支持Spring占位符
 custom.value=custom
@@ -349,6 +363,7 @@ custom.value=custom
 可以直接绑定对象或通过名称读取
 
 ```java
+
 @Component
 public class CustomExtractor extends ClassExtractor<Class<?>> {
 
@@ -357,7 +372,7 @@ public class CustomExtractor extends ClassExtractor<Class<?>> {
         PluginMetadata metadata = context.getPlugin().getMetadata();
 
         CustomData data = metadata.bind("custom", CustomData.class);
-        
+
         String app = metadata.get("custom.app");
         String value = metadata.get("custom.value");
     }
@@ -438,13 +453,13 @@ concept:
 也可在插件`plugin.properties`中单独配置
 
 ```properties
-concept.plugin.jar.mode= #加载模式
+concept.plugin.jar.mode=#加载模式
 ```
 
-|模式|兼容性|内存占用|
-|-|-|-|
-|STREAM|（相对）高|（相对）高|
-|FILE|（相对）低|（相对）低|
+| 模式     | 兼容性   | 内存占用  |
+|--------|-------|-------|
+| STREAM | （相对）高 | （相对）高 |
+| FILE   | （相对）低 | （相对）低 |
 
 `STREAM`支持所有`jar`和`zip`，但是会将所有数据读入内存并使用软引用缓存
 
@@ -461,6 +476,7 @@ jar {
 ```java
 ZipOutputStream zos = ...;
 zos.setMethod(ZipEntry.STORED);
+
 //或
 ZipEntry entry = ...;
 entry.setMethod(ZipEntry.STORED);
@@ -468,25 +484,34 @@ entry.setMethod(ZipEntry.STORED);
 
 # 插件事件
 
-|事件|说明|
-|-|-|
-|`PluginCreatedEvent`|插件创建事件|
-|`PluginPreparedEvent`|插件准备事件|
-|`PluginLoadedEvent`|插件加载事件|
-|`PluginUnloadedEvent`|插件卸载事件|
-|`PluginResolvedEvent`|插件解析事件|
-|`PluginFilteredEvent`|插件过滤事件|
-|`PluginMatchedEvent`|插件匹配事件|
-|`PluginConvertedEvent`|插件转换事件|
-|`PluginFormattedEvent`|插件格式化事件|
-|`PluginExtractedEvent`|插件提取事件|
-|`PluginAutoLoadEvent`|插件自动加载（监听文件新增）|
-|`PluginAutoUnloadEvent`|插件自动卸载事件（监听文件删除）|
+| 事件                      | 说明               |
+|-------------------------|------------------|
+| `PluginCreatedEvent`    | 插件创建事件           |
+| `PluginPreparedEvent`   | 插件准备事件           |
+| `PluginLoadedEvent`     | 插件加载事件           |
+| `PluginUnloadedEvent`   | 插件卸载事件           |
+| `PluginResolvedEvent`   | 插件解析事件           |
+| `PluginFilteredEvent`   | 插件过滤事件           |
+| `PluginMatchedEvent`    | 插件匹配事件           |
+| `PluginConvertedEvent`  | 插件转换事件           |
+| `PluginFormattedEvent`  | 插件格式化事件          |
+| `PluginExtractedEvent`  | 插件提取事件           |
+| `PluginAutoLoadEvent`   | 插件自动加载（监听文件新增）   |
+| `PluginAutoUnloadEvent` | 插件自动卸载事件（监听文件删除） |
+
+可使用`PluginEventListener`或`@EventListener`监听
+
+# 管理页面解锁
+
+除了可以配置密码也可以实现自定义`PluginManagementAuthorizer`解锁逻辑
 
 # 注意事项
 
 1. 管理页面默认密码为空，可直接解锁
 
-2. 可在 `resources/concept/plugin` 目录下添加 `concept-plugin.js` 自定义 `init`，`encodePassword(pwd)` 方法
+2. 扩展管理页面
+    1. 可在 `resources/concept/plugin` 目录下添加 `concept-plugin.js` 自定义 `init`，`encodePassword(pwd)` 方法
+
+    2. `init` 中可以配置 `axios` 设置 `token` 等
 
 3. 暂时不支持 `Spring Boot Jar` 结构的包
