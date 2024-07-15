@@ -6,16 +6,6 @@
 
 目前已实现基础的内容读取以及加载外部`Class`
 
-# 2.x.x 新特性
-
-注意事项：2.x.x版本与1.x.x版本不兼容
-
-1. 集成`Spring`并提供`Spring`相关能力
-
-2. 支持插件嵌套（jar中嵌套作为依赖的jar）和插件打包（多个jar作为通用依赖打包成zip，打包后被视为一个插件）
-
-3. 提供可视化操作页面
-
 # 最新版本
 
 ![Maven Central](https://img.shields.io/maven-central/v/com.github.linyuzai/concept-plugin-spring-boot-starter)
