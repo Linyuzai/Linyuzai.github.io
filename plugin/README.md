@@ -200,6 +200,7 @@ concept:
       standard-type: #标准配置类型
     autoload:
       enabled: #自动加载
+      period: #自动加载扫描间隔
       location:
         base-path: #自动加载目录
     jar:
@@ -484,6 +485,8 @@ entry.setMethod(ZipEntry.STORED);
 |`PluginExtractedEvent`|插件提取事件|
 |`PluginAutoLoadEvent`|插件自动加载（监听文件新增）|
 |`PluginAutoUnloadEvent`|插件自动卸载事件（监听文件删除）|
+|`PluginConceptInitializedEvent`|Concept初始化事件|
+|`PluginConceptDestroyedEvent`|Concept销毁事件|
 
 可使用`PluginEventListener`或`@EventListener`监听
 
