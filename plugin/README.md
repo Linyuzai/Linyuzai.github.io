@@ -1,14 +1,26 @@
 # 概述
 
+轻量级插件化解决方案
+
 提供可插拔的插件能力
-
-通过监听指定目录中文件的变化触发插件文件加载卸载流程
-
-目前已实现基础的内容读取以及加载外部 Class
 
 # 最新版本
 
 ![Maven Central](https://img.shields.io/maven-central/v/com.github.linyuzai/concept-plugin-spring-boot-starter)
+
+# 3.x.x 新特性
+
+注意事项：3.x.x版本与1.x.x和2.x.x版本不兼容（`PluginExtractor`和`@OnPluginExtract`可直接升级，自定义组件可能存在不兼容）
+
+1. 支持集群环境，支持对象存储加载插件
+
+2. 支持动态`Spring`接口，支持解析`yaml`文件
+
+3. 提供更简单的集成方式
+
+4. 架构优化及bug修复
+
+5. 移除`FILE`加载模式
 
 # 集成
 
@@ -41,9 +53,53 @@ public class PluginApplication {
 }
 ```
 
-### 2. 配置提取器或使用方法回调（两种方式选择一种即可，示例如下）
+### 2. 配置插件提取（按需选择，示例如下）
 
-#### 提取器（方式一）
+#### PluginObservable（方式一）
+
+```java
+@Configuration
+public class AIConfig {
+
+    @Bean
+    public PluginObservable<String, AI> aiPluginObservable() {
+        return new GenericPluginObservable<String, AI>() {
+            @Override
+            public String grouping(AI plugin, PluginContext context) {
+                return plugin.getName();
+            }
+        };
+    }
+}
+```
+
+```java
+@RestController
+@RequestMapping("/ai")
+public class AIController {
+
+    @Autowired
+    private PluginObservable<String, AI> aiPluginObservable;
+
+    @RequestMapping("/{name}")
+    public void ai(@PathVariable("name") String name) {
+        AI ai = aiPluginObservable.get(name);
+        if (ai == null) {
+            System.out.println("AI not found: " + name);
+        } else {
+            ai.ai();
+        }
+    }
+}
+```
+
+注入`PluginObservable`并通过范型定义`key`和插件类
+
+在需要使用插件的地方注入`PluginObservable`即可使用
+
+`PluginObservable`将会自动感知插件加载和卸载
+
+#### 实现提取器（方式二）
 
 - 类提取器
 
@@ -156,7 +212,7 @@ public class SampleContentExtractor extends ContentExtractor<List<String>> {
 }
 ```
 
-#### 方法回调（方式二）
+#### 方法回调（方式三）
 
 > 在方法上标记 @OnPluginExtract
 >
@@ -181,34 +237,52 @@ public class SampleDynamicExtractor {
 }
 ```
 
+#### Spring接口（方式四）
+
+配置文件启用扩展功能
+
+```yml
+concept:
+  plugin:
+    extension:
+      request-mapping:
+        enabled: true
+```
+
 ### 3. 加载插件
 
 加载`jar`或`zip`，支持`jar in jar`或多个`jar`打包成`zip`（视为一个插件）
 
 通过 `/concept-plugin/management.html` 管理页面上传加载插件
 
-![plugin_management](https://github.com/user-attachments/assets/9d5d22b6-a436-4b60-a49f-03e410f7e341)
+<img width="1233" alt="plugin" src="https://github.com/user-attachments/assets/9d5d22b6-a436-4b60-a49f-03e410f7e341">
 
 需要开放`/concept-plugin/**`路径，或者[扩展管理页面](#扩展管理页面)
 
-# 配置属性
+# 所有配置（按需配置）
 
 ```yaml
 concept:
   plugin:
     metadata:
-      standard-type: #标准配置类型
+      standard-type: #标准元数据类型，用于自定义标准元数据
+    validation:
+      max-nested-depth: #最大嵌套深度，默认不限制
+      max-read-size: #最大读取大小，默认不限制
+    storage:
+      type: #存储类型，内存，本地，远程，默认内存
+      location: 本地位置或远程bucket
+      filter-suffixes: 过滤后缀，用逗号分隔，如.zip,.jar
     autoload:
-      enabled: #自动加载
-      period: #自动加载扫描间隔
-      location:
-        base-path: #自动加载目录
-    jar:
-      mode: #加载模式
+      enabled: #是否启用自动加载，默认true
+      period: #自动加载扫描间隔，默认5000ms
+    logger:
+      standard:
+        enabled: #是否启用标准日志，默认true
     management:
-      enabled: #管理页面
+      enabled: #是否启用管理页面，默认true
       authorization:
-        password: #管理页面解锁密码
+        password: #管理页面解锁密码，默认空
       github-corner:
         display: #Github角
       header:
@@ -226,6 +300,29 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
 ```
+
+# 存储
+
+```yaml
+concept:
+  plugin:
+    storage:
+      type: #存储类型，内存，本地，远程，默认内存
+      location: #本地位置或远程bucket
+      filter-suffixes: #过滤后缀，用逗号分隔，如.zip,.jar
+
+```
+
+### type
+
+- 内存 MEMORY
+- 本地 LOCAL
+- 远程 MINIO，AWS_V1，AWS_V2
+
+### location
+
+- 本地 插件存储目录
+- 远程 对象存储bucket
 
 # 过滤器
 
@@ -331,6 +428,96 @@ public class SampleDynamicExtractor {
 
 `@PluginEntry`标记在方法上将过滤方法中的所有参数
 
+# 插件拦截器
+
+注入`Spring`即可生效
+
+拦截插件元数据和创建
+
+回调顺序：beforeCreatePlugin => beforeCreateMetadata => afterCreateMetadata => afterCreatePlugin
+
+```java
+public interface PluginInterceptor {
+
+    /**
+     * 插件创建前回调
+     *
+     * @param definition 插件定义
+     * @param context    插件上下文
+     */
+    default void beforeCreatePlugin(PluginDefinition definition, PluginContext context) {
+
+    }
+
+    /**
+     * 插件元数据创建前回调
+     *
+     * @param definition 插件定义
+     * @param context    插件上下文
+     */
+    default void beforeCreateMetadata(PluginDefinition definition, PluginContext context) {
+
+    }
+
+    /**
+     * 插件元数据创建后回调
+     *
+     * @param metadata   插件元数据
+     * @param definition 插件定义
+     * @param context    插件上下文
+     */
+    default void afterCreateMetadata(PluginMetadata metadata, PluginDefinition definition, PluginContext context) {
+
+    }
+
+    /**
+     * 插件创建后回调
+     *
+     * @param plugin     插件
+     * @param definition 插件定义
+     * @param context    插件上下文
+     */
+    default void afterCreatePlugin(Plugin plugin, PluginDefinition definition, PluginContext context) {
+
+    }
+}
+
+```
+
+# 插件监听器
+
+注入`Spring`即可生效
+
+监听插件加载和卸载（注意此处加载仅为插件树加载，不包括插件提取）
+
+```java
+/**
+ * 插件监听器
+ */
+public interface PluginListener {
+
+    /**
+     * 插件加载
+     *
+     * @param plugin  插件
+     * @param context 插件上下文
+     */
+    default void onLoad(Plugin plugin, PluginContext context) {
+
+    }
+
+    /**
+     * 插件卸载
+     *
+     * @param plugin 插件
+     */
+    default void onUnload(Plugin plugin) {
+
+    }
+}
+
+```
+
 # 插件配置
 
 可在插件包的根目录添加`plugin.properties`作为插件的配置文件
@@ -341,7 +528,6 @@ public class SampleDynamicExtractor {
 concept.plugin.name= #名称
 concept.plugin.handler.enabled= #是否解析提取插件
 concept.plugin.dependency.names= #依赖的插件
-concept.plugin.jar.mode= #加载模式
 #也可添加自定义配置
 custom.app=${spring.application.name} #支持Spring占位符
 custom.value=custom
@@ -389,26 +575,57 @@ public static class CustomData {
 }
 ```
 
+# 插件内读取
+
+通过类加载器读取
+
+```java
+InputStream is = getClass().getClassLoader().getResourceAsStream("text.txt")
+```
+
 # Spring依赖注入
 
 插件包中的类可使用Spring相关依赖，当直接提取实例对象时会自动注入
 
 ```java
-public class SpringPlugin implements CustomPlugin, ApplicationContextAware {
-
-    @Value("${spring.application.name}")
-    private String applicationName;
+@Component
+public class ExtractBeanApiImpl implements ExtractBeanApi, InitializingBean, DisposableBean, EnvironmentAware {
 
     @Autowired
-    private ApplicationEventPublisher applicationEventPublisher;
-
     private ApplicationContext applicationContext;
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+    public void exec() {
+        
     }
+
+    @PostConstruct
+    public void initByPostConstruct() {
+        System.out.println("initByPostConstruct");
+    }
+
+    @PreDestroy
+    public void destroyByPreDestroy() {
+        System.out.println("destroyByPreDestroy");
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("initByInitializingBean");
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        System.out.println("destroyByDisposableBean");
+    }
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        System.out.println("EnvironmentAware: " + environment);
+    }
+
 }
+
 ```
 
 # 插件依赖
@@ -427,64 +644,26 @@ public class SpringPlugin implements CustomPlugin, ApplicationContextAware {
 
 需要注意插件的加载顺序，插件加载会校验依赖的插件是否存在
 
-# Jar插件加载模式
-
-可在`application.yml`中配置默认模式
-
-```yaml
-concept:
-  plugin:
-    jar:
-      mode: #加载模式
-```
-
-也可在插件`plugin.properties`中单独配置
-
-```properties
-concept.plugin.jar.mode= #加载模式
-```
-
-|模式|兼容性|内存占用|
-|-|-|-|
-|STREAM|（相对）高|（相对）高|
-|FILE|（相对）低|（相对）低|
-
-`STREAM`支持所有`jar`和`zip`，但是会将所有数据读入内存并使用软引用缓存
-
-`FILE`在解析嵌套`jar`和`zip`时只支持`Store`方式的`Entry`，通过随机文件访问读取数据（如 Spring Boot Jar）
-
-压缩时设置`Store`方式
-
-```gradle
-jar {
-    entryCompression = ZipEntryCompression.STORED
-}
-```
-
-```java
-ZipOutputStream zos = ...;
-zos.setMethod(ZipEntry.STORED);
-//或
-ZipEntry entry = ...;
-entry.setMethod(ZipEntry.STORED);
-```
-
 # 插件事件
 
 |事件|说明|
 |-|-|
 |`PluginCreatedEvent`|插件创建事件|
-|`PluginPreparedEvent`|插件准备事件|
+|`PluginCreateErrorEvent`|插件创建异常事件|
 |`PluginLoadedEvent`|插件加载事件|
+|`PluginLoadErrorEvent`|插件加载异常事件|
 |`PluginUnloadedEvent`|插件卸载事件|
+|`PluginUnloadErrorEvent`|插件卸载异常事件|
 |`PluginResolvedEvent`|插件解析事件|
 |`PluginFilteredEvent`|插件过滤事件|
 |`PluginMatchedEvent`|插件匹配事件|
 |`PluginConvertedEvent`|插件转换事件|
 |`PluginFormattedEvent`|插件格式化事件|
 |`PluginExtractedEvent`|插件提取事件|
-|`PluginAutoLoadEvent`|插件自动加载（监听文件新增）|
-|`PluginAutoUnloadEvent`|插件自动卸载事件（监听文件删除）|
+|`PluginAutoLoadEvent`|插件自动加载事件|
+|`PluginAutoLoadErrorEvent`|插件自动加载异常事件|
+|`PluginAutoUnloadEvent`|插件自动卸载事件|
+|`PluginAutoUnloadErrorEvent`|插件自动卸载异常事件|
 |`PluginConceptInitializedEvent`|Concept初始化事件|
 |`PluginConceptDestroyedEvent`|Concept销毁事件|
 
