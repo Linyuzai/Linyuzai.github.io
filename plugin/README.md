@@ -524,6 +524,8 @@ public interface PluginListener {
 
 `java`项目在`resources`目录下添加即可
 
+`zip`文件在根目录下添加即可
+
 ```properties
 concept.plugin.name= #名称
 concept.plugin.handler.enabled= #是否解析提取插件
