@@ -271,8 +271,8 @@ concept:
       max-read-size: #最大读取大小，默认不限制
     storage:
       type: #存储类型，内存，本地，远程，默认内存
-      location: 本地位置或远程bucket
-      filter-suffixes: 过滤后缀，用逗号分隔，如.zip,.jar
+      location: #本地位置或远程bucket
+      filter-suffixes: #过滤后缀，用逗号分隔，如.zip,.jar
     autoload:
       enabled: #是否启用自动加载，默认true
       period: #自动加载扫描间隔，默认5000ms
